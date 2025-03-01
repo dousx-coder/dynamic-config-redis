@@ -1,0 +1,74 @@
+// 根项目的 build.gradle
+buildscript {
+    repositories {
+        maven { url 'https://repo.spring.io/plugins-snapshot' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'io.spring.gradle:dependency-management-plugin:1.1.7'
+    }
+}
+plugins {
+    id 'org.springframework.boot' version '3.4.3'
+    id "io.spring.dependency-management" version "1.1.7"
+    id 'java'
+}
+
+group = 'cn.cruder.dousx'
+version = '1.1.20250301-21'
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    jar.enabled = true
+    bootJar {
+        enabled = false
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
+    group = this.group
+    version = this.version
+
+    def props = new Properties()
+    buildFile.withInputStream { props.load(it) }
+    def subArchivesBaseName = props.getProperty('archivesBaseName')
+    def archName = subArchivesBaseName.substring(1, subArchivesBaseName.length() - 1)
+
+    java {
+        withSourcesJar()
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+
+    publishing {
+        repositories {
+            mavenLocal()
+        }
+        publications {
+            javaMaven(MavenPublication) {
+                artifactId = archName
+                from components.java
+            }
+        }
+    }
+}

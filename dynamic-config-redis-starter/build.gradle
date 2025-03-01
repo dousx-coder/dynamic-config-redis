@@ -1,0 +1,6 @@
+archivesBaseName = 'dynamic-config-redis-starter'
+dependencies {
+    api project(':dynamic-config-redis-autoconfigure') // 依赖 autoconfigure 模块
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+
+}
