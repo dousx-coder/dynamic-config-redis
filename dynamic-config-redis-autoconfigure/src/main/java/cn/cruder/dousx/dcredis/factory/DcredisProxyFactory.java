@@ -5,6 +5,7 @@ import cn.cruder.dousx.dcredis.annotation.DcredisProperty;
 import cn.cruder.dousx.dcredis.component.DcredisKeyComponent;
 import cn.cruder.dousx.dcredis.constant.TopicConstant;
 import cn.cruder.tools.json.JsonUtilPool;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
@@ -63,17 +64,20 @@ public class DcredisProxyFactory {
                 synchronized (LOCAL_CACHE) {
                     config = LOCAL_CACHE.get(redisKey);
                     if (config == null) {
-                        String sv = "";
+                        String configValue = "";
                         Object redisValue = redissonClient.getBucket(redisKey).get();
                         if (redisValue != null) {
-                            sv = (String) redisValue;
+                            configValue = (String) redisValue;
                         }
-                        if (StringUtils.isBlank(sv)) {
-                            sv = dcredisProperty.defaultValue();
-                            log.debug("取默认配置：{} ==> {}", redisKey, sv);
+                        if (StringUtils.isBlank(configValue)) {
+                            configValue = dcredisProperty.defaultValue();
+                            log.debug("取默认配置：{} ==> {}", redisKey, configValue);
                         }
+                        // 去除Json字符串的转义字符
+                        String removeEscapeStr = JsonParser.parseString(configValue).toString();
+                        log.info("Before:{} ===> After:{}", configValue, removeEscapeStr);
                         Class<?> returnType = method.getReturnType();
-                        config = JsonUtilPool.parseObject(sv, returnType);
+                        config = JsonUtilPool.parseObject(removeEscapeStr, returnType);
                         LOCAL_CACHE.put(redisKey, config);
                     }
                 }
@@ -83,14 +87,17 @@ public class DcredisProxyFactory {
 
         private void subscribeToRedis() {
             RTopic topic = redissonClient.getTopic(TopicConstant.CONFIG_TOPIC);
-            topic.addListener(String.class, (channel, msg) -> {
-                // msg is key
-                String value = (String) redissonClient.getBucket(msg).get();
-                if (LOCAL_CACHE.containsKey(msg)) {
-                    LOCAL_CACHE.put(msg, value);
-                    log.info("update local Cache:{}==>{}", msg, value);
+            topic.addListener(String.class, (channelTopic, redisKey) -> {
+                String value = (String) redissonClient.getBucket(redisKey).get();
+                if (LOCAL_CACHE.containsKey(redisKey)) {
+                    Class<?> returnType = LOCAL_CACHE.get(redisKey).getClass();
+                    String removeEscapeStr = JsonParser.parseString(value).toString();
+                    log.info("removeEscapeBefore:{} ===> removeEscapeAfter:{}", value, removeEscapeStr);
+                    Object config = JsonUtilPool.parseObject(removeEscapeStr, returnType);
+                    LOCAL_CACHE.put(redisKey, config);
+                    log.info("update local Cache:[{}]{}==>{}", channelTopic, redisKey, value);
                 } else {
-                    log.warn("key is not exist:{}==>{}", msg, value);
+                    log.warn("key is not exist:[{}]{}==>{}", channelTopic, redisKey, value);
                 }
             });
         }
