@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "dcredis.config")
-public class ConfigProperties {
+public class DcredisProperties {
 
     /**
      * 配置命名空间

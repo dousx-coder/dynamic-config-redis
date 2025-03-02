@@ -1,8 +1,8 @@
 package cn.cruder.dousx.dcredis.factory;
 
 
-import cn.cruder.dousx.dcredis.annotation.DynamicConfigProperty;
-import cn.cruder.dousx.dcredis.component.RedisKeyComponent;
+import cn.cruder.dousx.dcredis.annotation.DcredisProperty;
+import cn.cruder.dousx.dcredis.component.DcredisKeyComponent;
 import cn.cruder.dousx.dcredis.constant.TopicConstant;
 import cn.cruder.tools.json.JsonUtilPool;
 import org.apache.commons.lang3.StringUtils;
@@ -20,16 +20,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-@Component(ConfigProxyFactory.BEAN_NAME)
-public class ConfigProxyFactory {
-    public static final String BEAN_NAME = "configProxyFactory";
-    private static final Logger log = LoggerFactory.getLogger(ConfigProxyFactory.class);
+@Component(DcredisProxyFactory.BEAN_NAME)
+public class DcredisProxyFactory {
+    private static final Logger log = LoggerFactory.getLogger(DcredisProxyFactory.class);
+    public static final String BEAN_NAME = "dcredisProxyFactory";
+    /**
+     * 本地缓存
+     */
     private static final Map<String, Object> LOCAL_CACHE = new ConcurrentHashMap<>();
 
     @Autowired
     private RedissonClient redissonClient;
+
     @Autowired
-    private RedisKeyComponent redisKeyComponent;
+    private DcredisKeyComponent dcredisKeyComponent;
 
     public <T> T createProxy(Class<T> configInterface) {
         Object proxy = Proxy.newProxyInstance(
@@ -48,12 +52,12 @@ public class ConfigProxyFactory {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
-            DynamicConfigProperty dynamicConfigProperty = method.getAnnotation(DynamicConfigProperty.class);
-            if (dynamicConfigProperty == null) {
+            DcredisProperty dcredisProperty = method.getAnnotation(DcredisProperty.class);
+            if (dcredisProperty == null) {
                 throw new UnsupportedOperationException("Method not annotated with @DynamicConfigProperty");
             }
-            String annotationKey = dynamicConfigProperty.key();
-            String redisKey = redisKeyComponent.getRedisKey(annotationKey);
+            String annotationKey = dcredisProperty.key();
+            String redisKey = dcredisKeyComponent.getRedisKey(annotationKey);
             Object config = LOCAL_CACHE.get(redisKey);
             if (config == null) {
                 synchronized (LOCAL_CACHE) {
@@ -65,7 +69,7 @@ public class ConfigProxyFactory {
                             sv = (String) redisValue;
                         }
                         if (StringUtils.isBlank(sv)) {
-                            sv = dynamicConfigProperty.defaultValue();
+                            sv = dcredisProperty.defaultValue();
                             log.debug("取默认配置：{} ==> {}", redisKey, sv);
                         }
                         Class<?> returnType = method.getReturnType();
@@ -84,9 +88,9 @@ public class ConfigProxyFactory {
                 String value = (String) redissonClient.getBucket(msg).get();
                 if (LOCAL_CACHE.containsKey(msg)) {
                     LOCAL_CACHE.put(msg, value);
-                    log.info("update Cache:{}==>{}", msg, value);
+                    log.info("update local Cache:{}==>{}", msg, value);
                 } else {
-                    log.info("key is not exist:{}==>{}", msg, value);
+                    log.warn("key is not exist:{}==>{}", msg, value);
                 }
             });
         }

@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface DynamicConfigProperty {
+public @interface DcredisProperty {
     /**
      * The property name.
      */

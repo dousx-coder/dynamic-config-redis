@@ -9,5 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
-public class DynamicConfigRedisConfiguration {
+public class DcredisConfiguration {
 }

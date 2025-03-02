@@ -1,26 +1,26 @@
 package cn.cruder.dousx.dcredis.adapter;
 
-import cn.cruder.dousx.dcredis.factory.ConfigProxyFactory;
+import cn.cruder.dousx.dcredis.factory.DcredisProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * ConfigProxyFactory适配器
  */
-public class ConfigProxyFactoryAdapter implements FactoryBean<Object> {
+public class DcredisProxyFactoryAdapter implements FactoryBean<Object> {
 
     private final Class<?> interfaceType;
 
     @Autowired
-    private ConfigProxyFactory configProxyFactory;
+    private DcredisProxyFactory dcredisProxyFactory;
 
-    public ConfigProxyFactoryAdapter(Class<?> interfaceType) {
+    public DcredisProxyFactoryAdapter(Class<?> interfaceType) {
         this.interfaceType = interfaceType;
     }
 
     @Override
     public Object getObject() {
-        return configProxyFactory.createProxy(interfaceType);
+        return dcredisProxyFactory.createProxy(interfaceType);
     }
 
     @Override

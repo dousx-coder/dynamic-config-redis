@@ -1,6 +1,6 @@
 package cn.cruder.dousx.dcredis.annotation;
 
-import cn.cruder.dousx.dcredis.registry.ConfigProxyRegistrar;
+import cn.cruder.dousx.dcredis.registry.DcredisProxyRegistrar;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
@@ -13,8 +13,8 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(ConfigProxyRegistrar.class)
-public @interface EnableDynamicConfig {
+@Import(DcredisProxyRegistrar.class)
+public @interface EnableDcredis {
     /**
      * 需要扫描的包
      * <br/>
