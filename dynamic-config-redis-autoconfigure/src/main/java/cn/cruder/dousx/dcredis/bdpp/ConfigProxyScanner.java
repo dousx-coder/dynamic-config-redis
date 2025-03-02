@@ -18,7 +18,6 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.function.Supplier;
 
 
 public class ConfigProxyScanner implements BeanDefinitionRegistryPostProcessor {
