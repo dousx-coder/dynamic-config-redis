@@ -6,6 +6,7 @@ import cn.cruder.dousx.dcredis.component.DcredisKeyComponent;
 import cn.cruder.dousx.dcredis.constant.TopicConstant;
 import cn.cruder.tools.json.JsonUtilPool;
 import com.google.gson.JsonParser;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
@@ -40,16 +41,12 @@ public class DcredisProxyFactory {
         Object proxy = Proxy.newProxyInstance(
                 configInterface.getClassLoader(),
                 new Class<?>[]{configInterface},
-                new ConfigInvocationHandler(configInterface)
+                new ConfigInvocationHandler()
         );
         return configInterface.cast(proxy);
     }
 
     private class ConfigInvocationHandler implements InvocationHandler {
-
-        public ConfigInvocationHandler(Class<?> configInterface) {
-            subscribeToRedis();
-        }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -84,22 +81,27 @@ public class DcredisProxyFactory {
             }
             return config;
         }
+    }
 
-        private void subscribeToRedis() {
-            RTopic topic = redissonClient.getTopic(TopicConstant.CONFIG_TOPIC);
-            topic.addListener(String.class, (channelTopic, redisKey) -> {
-                String value = (String) redissonClient.getBucket(redisKey).get();
-                if (LOCAL_CACHE.containsKey(redisKey)) {
-                    Class<?> returnType = LOCAL_CACHE.get(redisKey).getClass();
-                    String removeEscapeStr = JsonParser.parseString(value).toString();
-                    log.info("removeEscapeBefore:{} ===> removeEscapeAfter:{}", value, removeEscapeStr);
-                    Object config = JsonUtilPool.parseObject(removeEscapeStr, returnType);
-                    LOCAL_CACHE.put(redisKey, config);
-                    log.info("update local Cache:[{}]{}==>{}", channelTopic, redisKey, value);
-                } else {
-                    log.warn("key is not exist:[{}]{}==>{}", channelTopic, redisKey, value);
-                }
-            });
-        }
+    @PostConstruct
+    public void init() {
+        // bean初始化以后再添加监听事件。(放到ConfigInvocationHandler构造方法中会重复添加监听事件)
+        // 放到bean初始化以后添加，可能会造成服务启动后存在短暂的时间段监听事件还没添加上。不过这个时间很短，可以忽略
+        log.info("DcredisProxyFactory init start");
+        RTopic topic = redissonClient.getTopic(TopicConstant.CONFIG_TOPIC);
+        topic.addListener(String.class, (channelTopic, redisKey) -> {
+            String value = (String) redissonClient.getBucket(redisKey).get();
+            if (LOCAL_CACHE.containsKey(redisKey)) {
+                Class<?> returnType = LOCAL_CACHE.get(redisKey).getClass();
+                String removeEscapeStr = JsonParser.parseString(value).toString();
+                log.info("removeEscapeBefore:{} ===> removeEscapeAfter:{}", value, removeEscapeStr);
+                Object config = JsonUtilPool.parseObject(removeEscapeStr, returnType);
+                LOCAL_CACHE.put(redisKey, config);
+                log.info("update local Cache:[{}]{}==>{}", channelTopic, redisKey, value);
+            } else {
+                log.warn("key is not exist:[{}]{}==>{}", channelTopic, redisKey, value);
+            }
+        });
+        log.info("DcredisProxyFactory init done");
     }
 }

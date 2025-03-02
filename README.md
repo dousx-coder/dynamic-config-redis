@@ -8,7 +8,7 @@
 1. 引入依赖
 
 ```groovy
-    implementation 'cn.cruder.dousx:dynamic-config-redis-starter:1.1.20250302-14'
+    implementation 'cn.cruder.dousx:dynamic-config-redis-starter:1.1.20250302-15'
 ```
 
 2. 配置文件中指定`dcredis.config.nameSpace`
