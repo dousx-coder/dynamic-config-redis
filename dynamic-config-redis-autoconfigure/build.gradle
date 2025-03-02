@@ -11,5 +11,5 @@ dependencies {
 
     api 'cn.cruder:common-tools:1.1.20240526-16'
     // https://mvnrepository.com/artifact/org.redisson/redisson-spring-boot-starter
-    api 'org.redisson:redisson-spring-boot-starter:3.44.0'
+    api 'org.redisson:redisson-spring-boot-starter:3.45.0'
 }
