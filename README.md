@@ -32,20 +32,23 @@ public class Application {
 }
 ```
 
-4. 定义配置接口,用`@DynamicConfig`标记为配置类。示例如下：
+4. 定义配置接口
+- `@DynamicConfig`标记为配置类。
+- `@DynamicConfigProperty`指定key(建议使用`:`将key隔开,在大部分redis可视化工具中，会通过`:`将key分割做成树形展示)。
+示例如下：
 
 ```java
 
 @DynamicConfig
 public interface ReaderConfig {
 
-    @DynamicConfigProperty(key = "reader.url", defaultValue = "localhost")
+    @DynamicConfigProperty(key = "reader:url", defaultValue = "localhost")
     String getReaderUrl();
 
-    @DynamicConfigProperty(key = "reader.port", defaultValue = "6369")
+    @DynamicConfigProperty(key = "reader:port", defaultValue = "6369")
     Integer getReaderPort();
 
-    @DynamicConfigProperty(key = "reader.retry", defaultValue = "true")
+    @DynamicConfigProperty(key = "reader:retry", defaultValue = "true")
     Boolean getReaderRetry();
 }
 ```
