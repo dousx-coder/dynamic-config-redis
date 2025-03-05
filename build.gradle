@@ -16,7 +16,7 @@ plugins {
 }
 
 group = 'cn.cruder.dousx'
-version = '1.1.20250302-15'
+version = '1.1.20250305-16'
 allprojects {
     repositories {
         mavenLocal()
