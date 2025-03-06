@@ -18,7 +18,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,12 +25,13 @@ import java.util.Set;
 public class DcredisProxyScanner implements BeanDefinitionRegistryPostProcessor {
     private static final Logger log = LoggerFactory.getLogger(DcredisProxyScanner.class);
 
-    private String[] basePackages;
+
+    private Set<String> scanPackages;
 
     private ResourceLoader resourceLoader;
 
-    public void setBasePackages(String[] basePackages) {
-        this.basePackages = basePackages;
+    public void setScanPackages(Set<String> scanPackages) {
+        this.scanPackages = scanPackages;
     }
 
     public void setResourceLoader(ResourceLoader resourceLoader) {
@@ -55,7 +55,7 @@ public class DcredisProxyScanner implements BeanDefinitionRegistryPostProcessor 
         scanner.setResourcePattern("**/*.class");
         Set<String> allKey = new HashSet<>();
         // 扫描逻辑
-        Arrays.stream(basePackages).forEach(basePackage -> {
+        scanPackages.forEach(basePackage -> {
             Set<BeanDefinition> candidates = scanner.findCandidateComponents(basePackage);
             for (BeanDefinition candidate : candidates) {
                 try {
