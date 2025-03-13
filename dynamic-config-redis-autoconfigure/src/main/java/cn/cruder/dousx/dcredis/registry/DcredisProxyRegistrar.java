@@ -36,7 +36,7 @@ public class DcredisProxyRegistrar implements ImportBeanDefinitionRegistrar {
             }
         }).toList();
         Set<String> scanPackages = new HashSet<>();
-        // O²复杂度不影响性能(这里一般不会配置太多)
+        // o²复杂度不影响性能(这里一般不会配置太多)
         for (String child : list) {
             for (String parent : list) {
                 if (child.startsWith(parent)) {
